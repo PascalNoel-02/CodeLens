@@ -19,6 +19,8 @@ export function AnalysisView({ explanation }: AnalysisViewProps) {
 function ExplanationNode({ explanation }: { explanation: Explanation }) {
   return (
     <li>
+      {explanation.summary && <strong>{explanation.summary}</strong>}
+      {explanation.summary && <br />}
       {explanation.kind}
       {explanation.label ? `: ${explanation.label}` : ""}
       {explanation.children.length > 0 && (
