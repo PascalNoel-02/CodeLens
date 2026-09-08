@@ -180,32 +180,15 @@ describe("explainNode", () => {
 
     const [ifStatement, fallbackReturn] = explanation.children;
 
-    // IfStatement has no dedicated case yet, so it falls back to all of its
-    // direct children: the condition (a BinaryExpression, which still
-    // explains both operands) and the "then" block containing the return.
     expect(ifStatement.kind).toBe("IfStatement");
+    expect(ifStatement.summary).toBe("Bedingte Verzweigung");
     expect(ifStatement.children).toEqual([
       {
-        kind: "BinaryExpression",
-        summary: "Vergleich/Berechnung von zwei Werten",
+        kind: "condition",
         children: [
           {
-            kind: "PropertyAccessExpression",
-            summary: "Zugriff auf eine Eigenschaft",
-            children: [
-              { kind: "object", children: [{ kind: "Identifier", label: "user", children: [] }] },
-              { kind: "property", label: "age", children: [] },
-            ],
-          },
-          { kind: "FirstLiteralToken", children: [] },
-        ],
-      },
-      {
-        kind: "Block",
-        children: [
-          {
-            kind: "ReturnStatement",
-            summary: "Rückgabewert der Funktion",
+            kind: "BinaryExpression",
+            summary: "Vergleich/Berechnung von zwei Werten",
             children: [
               {
                 kind: "PropertyAccessExpression",
@@ -215,7 +198,35 @@ describe("explainNode", () => {
                     kind: "object",
                     children: [{ kind: "Identifier", label: "user", children: [] }],
                   },
-                  { kind: "property", label: "name", children: [] },
+                  { kind: "property", label: "age", children: [] },
+                ],
+              },
+              { kind: "FirstLiteralToken", children: [] },
+            ],
+          },
+        ],
+      },
+      {
+        kind: "then",
+        children: [
+          {
+            kind: "Block",
+            children: [
+              {
+                kind: "ReturnStatement",
+                summary: "Rückgabewert der Funktion",
+                children: [
+                  {
+                    kind: "PropertyAccessExpression",
+                    summary: "Zugriff auf eine Eigenschaft",
+                    children: [
+                      {
+                        kind: "object",
+                        children: [{ kind: "Identifier", label: "user", children: [] }],
+                      },
+                      { kind: "property", label: "name", children: [] },
+                    ],
+                  },
                 ],
               },
             ],
@@ -229,5 +240,116 @@ describe("explainNode", () => {
       summary: "Rückgabewert der Funktion",
       children: [{ kind: "StringLiteral", children: [] }],
     });
+  });
+
+  it("explains an if statement with condition, then and else branches", () => {
+    const sourceFile = parseCode(
+      `if (age > 18) {
+        return "adult";
+      } else {
+        return "minor";
+      }`,
+    );
+    const ifStatement = sourceFile.statements[0] as ts.IfStatement;
+
+    const explanation = explainNode(ifStatement);
+
+    expect(explanation.kind).toBe("IfStatement");
+    expect(explanation.summary).toBe("Bedingte Verzweigung");
+    expect(explanation.children).toEqual([
+      {
+        kind: "condition",
+        children: [
+          {
+            kind: "BinaryExpression",
+            summary: "Vergleich/Berechnung von zwei Werten",
+            children: [
+              { kind: "Identifier", label: "age", children: [] },
+              { kind: "FirstLiteralToken", children: [] },
+            ],
+          },
+        ],
+      },
+      {
+        kind: "then",
+        children: [
+          {
+            kind: "Block",
+            children: [
+              {
+                kind: "ReturnStatement",
+                summary: "Rückgabewert der Funktion",
+                children: [{ kind: "StringLiteral", children: [] }],
+              },
+            ],
+          },
+        ],
+      },
+      {
+        kind: "else",
+        children: [
+          {
+            kind: "Block",
+            children: [
+              {
+                kind: "ReturnStatement",
+                summary: "Rückgabewert der Funktion",
+                children: [{ kind: "StringLiteral", children: [] }],
+              },
+            ],
+          },
+        ],
+      },
+    ]);
+  });
+
+  it("explains an object literal with its properties", () => {
+    const sourceFile = parseCode(
+      `const user = {
+        name: "Alice",
+        age: 30
+      };`,
+    );
+    const statement = sourceFile.statements[0] as ts.VariableStatement;
+    const objectLiteral = statement.declarationList.declarations[0]
+      .initializer as ts.ObjectLiteralExpression;
+
+    const explanation = explainNode(objectLiteral);
+
+    expect(explanation.kind).toBe("ObjectLiteralExpression");
+    expect(explanation.summary).toBe("Objekt wird erstellt");
+    expect(explanation.children).toEqual([
+      {
+        kind: "PropertyAssignment",
+        children: [
+          { kind: "Identifier", label: "name", children: [] },
+          { kind: "StringLiteral", children: [] },
+        ],
+      },
+      {
+        kind: "PropertyAssignment",
+        children: [
+          { kind: "Identifier", label: "age", children: [] },
+          { kind: "FirstLiteralToken", children: [] },
+        ],
+      },
+    ]);
+  });
+
+  it("explains an array literal with all of its elements", () => {
+    const sourceFile = parseCode("const users = [user, admin, guest];");
+    const statement = sourceFile.statements[0] as ts.VariableStatement;
+    const arrayLiteral = statement.declarationList.declarations[0]
+      .initializer as ts.ArrayLiteralExpression;
+
+    const explanation = explainNode(arrayLiteral);
+
+    expect(explanation.kind).toBe("ArrayLiteralExpression");
+    expect(explanation.summary).toBe("Array wird erstellt");
+    expect(explanation.children).toEqual([
+      { kind: "Identifier", label: "user", children: [] },
+      { kind: "Identifier", label: "admin", children: [] },
+      { kind: "Identifier", label: "guest", children: [] },
+    ]);
   });
 });

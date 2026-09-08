@@ -70,6 +70,33 @@ export function explainNode(node: ts.Node): Explanation {
     };
   }
 
+  if (ts.isIfStatement(node)) {
+    const children: Explanation[] = [
+      { kind: "condition", children: [explainNode(node.expression)] },
+      { kind: "then", children: [explainNode(node.thenStatement)] },
+    ];
+    if (node.elseStatement) {
+      children.push({ kind: "else", children: [explainNode(node.elseStatement)] });
+    }
+    return { kind: "IfStatement", summary: "Bedingte Verzweigung", children };
+  }
+
+  if (ts.isObjectLiteralExpression(node)) {
+    return {
+      kind: "ObjectLiteralExpression",
+      summary: "Objekt wird erstellt",
+      children: node.properties.map(explainNode),
+    };
+  }
+
+  if (ts.isArrayLiteralExpression(node)) {
+    return {
+      kind: "ArrayLiteralExpression",
+      summary: "Array wird erstellt",
+      children: node.elements.map(explainNode),
+    };
+  }
+
   // No specific explanation for this node kind yet: fall back to all of its
   // direct children so the user still sees something instead of a dead end.
   const children: ts.Node[] = [];
