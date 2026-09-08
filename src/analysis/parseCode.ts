@@ -19,3 +19,23 @@ export function findNodeAtPosition(sourceFile: ts.SourceFile, position: number):
 
   return findInChildren(sourceFile);
 }
+
+// Walks up from a specific AST node to the nearest enclosing statement or
+// declaration that is more useful to explain to the user than the raw node
+// under the cursor (e.g. the whole `const user = getUser();` instead of just
+// the `getUser` identifier).
+export function findRelevantStatement(node: ts.Node): ts.Node {
+  let current: ts.Node | undefined = node;
+  while (current && !ts.isSourceFile(current)) {
+    if (
+      ts.isVariableStatement(current) ||
+      ts.isExpressionStatement(current) ||
+      ts.isReturnStatement(current) ||
+      ts.isFunctionDeclaration(current)
+    ) {
+      return current;
+    }
+    current = current.parent;
+  }
+  return node;
+}

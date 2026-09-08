@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { explainNode, type Explanation } from "./analysis/explainNode";
-import { findNodeAtPosition, parseCode } from "./analysis/parseCode";
+import { findNodeAtPosition, findRelevantStatement, parseCode } from "./analysis/parseCode";
 import { AnalysisView } from "./components/AnalysisView";
 import { CodeInput } from "./components/CodeInput";
 import "./App.css";
@@ -10,14 +10,14 @@ const EXAMPLE_CODE = "const user = getUser();\n";
 function App() {
   const [code, setCode] = useState(EXAMPLE_CODE);
   const [explanation, setExplanation] = useState<Explanation | null>(() =>
-    explainNode(findNodeAtPosition(parseCode(EXAMPLE_CODE), 0)),
+    explainNode(findRelevantStatement(findNodeAtPosition(parseCode(EXAMPLE_CODE), 0))),
   );
 
   function analyze(newCode: string, cursorPosition: number) {
     setCode(newCode);
     const sourceFile = parseCode(newCode);
     const node = findNodeAtPosition(sourceFile, cursorPosition);
-    setExplanation(explainNode(node));
+    setExplanation(explainNode(findRelevantStatement(node)));
   }
 
   return (
