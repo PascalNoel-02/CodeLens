@@ -97,6 +97,65 @@ export function explainNode(node: ts.Node): Explanation {
     };
   }
 
+  if (ts.isForStatement(node)) {
+    const children: Explanation[] = [];
+    if (node.initializer) {
+      children.push({ kind: "initializer", children: [explainNode(node.initializer)] });
+    }
+    if (node.condition) {
+      children.push({ kind: "condition", children: [explainNode(node.condition)] });
+    }
+    if (node.incrementor) {
+      children.push({ kind: "incrementor", children: [explainNode(node.incrementor)] });
+    }
+    children.push({ kind: "body", children: [explainNode(node.statement)] });
+    return { kind: "ForStatement", summary: "Schleife wird ausgeführt", children };
+  }
+
+  if (ts.isWhileStatement(node)) {
+    return {
+      kind: "WhileStatement",
+      summary: "Schleife läuft, solange die Bedingung erfüllt ist",
+      children: [
+        { kind: "condition", children: [explainNode(node.expression)] },
+        { kind: "body", children: [explainNode(node.statement)] },
+      ],
+    };
+  }
+
+  if (ts.isDoStatement(node)) {
+    return {
+      kind: "DoStatement",
+      summary: "Schleife wird mindestens einmal ausgeführt",
+      children: [
+        { kind: "body", children: [explainNode(node.statement)] },
+        { kind: "condition", children: [explainNode(node.expression)] },
+      ],
+    };
+  }
+
+  if (ts.isArrowFunction(node)) {
+    return {
+      kind: "ArrowFunction",
+      summary: "Arrow-Funktion wird definiert",
+      children: [
+        { kind: "parameters", children: node.parameters.map(explainNode) },
+        { kind: "body", children: [explainNode(node.body)] },
+      ],
+    };
+  }
+
+  if (ts.isFunctionExpression(node)) {
+    return {
+      kind: "FunctionExpression",
+      summary: "Funktion wird als Ausdruck definiert",
+      children: [
+        { kind: "parameters", children: node.parameters.map(explainNode) },
+        { kind: "body", children: [explainNode(node.body)] },
+      ],
+    };
+  }
+
   // No specific explanation for this node kind yet: fall back to all of its
   // direct children so the user still sees something instead of a dead end.
   const children: ts.Node[] = [];

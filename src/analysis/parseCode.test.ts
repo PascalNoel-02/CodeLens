@@ -107,6 +107,26 @@ describe("findRelevantStatement", () => {
     expect(ts.isIfStatement(statement)).toBe(true);
   });
 
+  it("walks up to the ForStatement from a node inside the condition", () => {
+    const code = "for (let i = 0; i < 3; i++) {\n  console.log(i);\n}";
+    const sourceFile = parseCode(code);
+    const node = findNodeAtPosition(sourceFile, code.indexOf("i < 3"));
+
+    const statement = findRelevantStatement(node);
+
+    expect(ts.isForStatement(statement)).toBe(true);
+  });
+
+  it("walks up to the WhileStatement from a node inside the condition", () => {
+    const code = "while (count > 0) {\n  count = count - 1;\n}";
+    const sourceFile = parseCode(code);
+    const node = findNodeAtPosition(sourceFile, code.indexOf("count > 0"));
+
+    const statement = findRelevantStatement(node);
+
+    expect(ts.isWhileStatement(statement)).toBe(true);
+  });
+
   it("falls back to the original node when no relevant ancestor exists", () => {
     const sourceFile = parseCode("type UserId = number;");
     const node = findNodeAtPosition(sourceFile, sourceFile.getText().indexOf("UserId"));

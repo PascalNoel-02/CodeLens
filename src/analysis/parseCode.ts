@@ -32,7 +32,10 @@ export function findRelevantStatement(node: ts.Node): ts.Node {
       ts.isExpressionStatement(current) ||
       ts.isReturnStatement(current) ||
       ts.isFunctionDeclaration(current) ||
-      ts.isIfStatement(current)
+      ts.isIfStatement(current) ||
+      ts.isForStatement(current) ||
+      ts.isWhileStatement(current) ||
+      ts.isDoStatement(current)
     ) {
       return current;
     }
