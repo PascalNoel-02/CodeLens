@@ -31,7 +31,8 @@ export function findRelevantStatement(node: ts.Node): ts.Node {
       ts.isVariableStatement(current) ||
       ts.isExpressionStatement(current) ||
       ts.isReturnStatement(current) ||
-      ts.isFunctionDeclaration(current)
+      ts.isFunctionDeclaration(current) ||
+      ts.isIfStatement(current)
     ) {
       return current;
     }

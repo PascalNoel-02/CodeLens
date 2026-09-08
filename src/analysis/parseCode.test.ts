@@ -97,6 +97,16 @@ describe("findRelevantStatement", () => {
     expect(statement).toBe(expressionStatement);
   });
 
+  it("walks up to the IfStatement from a node inside the condition", () => {
+    const code = "if (user.name) {\n  return user.name;\n}";
+    const sourceFile = parseCode(code);
+    const node = findNodeAtPosition(sourceFile, code.indexOf("user.name"));
+
+    const statement = findRelevantStatement(node);
+
+    expect(ts.isIfStatement(statement)).toBe(true);
+  });
+
   it("falls back to the original node when no relevant ancestor exists", () => {
     const sourceFile = parseCode("type UserId = number;");
     const node = findNodeAtPosition(sourceFile, sourceFile.getText().indexOf("UserId"));
